@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity ^0.8.17;
 
-import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
+import { Math } from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import { SimpleSwapSetUp } from "./helper/SimpleSwapSetUp.sol";
 
 contract SimpleSwapAddLiquidityTest is SimpleSwapSetUp {

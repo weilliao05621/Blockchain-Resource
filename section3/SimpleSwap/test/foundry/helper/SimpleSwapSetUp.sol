@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
-pragma solidity 0.8.17;
+pragma solidity ^0.8.17;
 
 import { Test } from "forge-std/Test.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IERC20 } from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import { TestERC20 } from "../../../contracts/test/TestERC20.sol";
 import { SimpleSwap } from "../../../contracts/SimpleSwap.sol";
 import { ISimpleSwapEvent } from "../../../contracts/interface/ISimpleSwap.sol";
@@ -15,7 +15,7 @@ contract SimpleSwapSetUp is Test, ISimpleSwapEvent {
     TestERC20 tokenB;
     uint256 tokenADecimals;
     uint256 tokenBDecimals;
-    uint256 slpDecimals;
+    uint256 slpDecimals = 18;
 
     SimpleSwap simpleSwap;
 

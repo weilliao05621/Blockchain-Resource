@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity ^0.8.17;
 
 import { SimpleSwapSetUp } from "./helper/SimpleSwapSetUp.sol";
-import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { Math } from "openzeppelin-contracts/contracts/utils/math/Math.sol";
+import { IERC20 } from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 contract SimplwSwapGetterTest is SimpleSwapSetUp {
     function setUp() public override {
@@ -112,19 +112,19 @@ contract SimpleSwapKValueCheck is SimpleSwapSetUp {
         K = amountA * amountB;
     }
 
-    function test_kValue_should_be_the_greater_than_eq_after_swaps() public {
-        address tokenIn = address(tokenA);
-        address tokenOut = address(tokenB);
-        uint256 amountIn = 70 * 10 ** tokenADecimals;
+  function test_kValue_should_be_the_greater_after_swaps() public {
+    address tokenIn = address(tokenA);
+    address tokenOut = address(tokenB);
+    uint256 amountIn = 70 * 10 ** tokenADecimals;
 
-        vm.startPrank(taker);
-        simpleSwap.swap(tokenIn, tokenOut, amountIn);
-        simpleSwap.swap(tokenIn, tokenOut, amountIn);
-        simpleSwap.swap(tokenIn, tokenOut, amountIn);
-        vm.stopPrank();
-        uint256 reserveA;
-        uint256 reserveB;
-        (reserveA, reserveB) = simpleSwap.getReserves();
-        assertGe(reserveA * reserveB, K);
-    }
+    vm.startPrank(taker);
+    simpleSwap.swap(tokenIn, tokenOut, amountIn);
+    simpleSwap.swap(tokenIn, tokenOut, amountIn);
+    simpleSwap.swap(tokenIn, tokenOut, amountIn);
+    vm.stopPrank();
+    uint256 reserveA;
+    uint256 reserveB;
+    (reserveA, reserveB) = simpleSwap.getReserves();
+    assertGt(reserveA * reserveB, K);
+  }
 }

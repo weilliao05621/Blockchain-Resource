@@ -41,33 +41,31 @@ contract Arbitrage is IUniswapV2Callee, Ownable {
 
         // 3. decode callback data
         CallbackData memory callbackdata = abi.decode(data,(CallbackData));
-        // 4. swap WETH to USDC
-        /*
-            已經拿到 5 WETH，所以可以直接換出 USDC。
-            (從 priceHigherPool 換出 USDC)
+        // 
+        /*  
+            4. swap WETH to USDC
+                合約已經從 swap 得到了 transfer 出來的 5 WETH，所以可以直接換出 USDC。
+                [從 priceHigherPool 換出 USDC]
         */
         IERC20(callbackdata.borrowToken).transfer(callbackdata.targetSwapPool, callbackdata.borrowAmount);
         IUniswapV2Pair(callbackdata.targetSwapPool).swap(0,callbackdata.debtAmountOut,address(this),"");
 
-        // 5. repay USDC to lower price pool
+        /*
+            5. repay USDC to lower price pool
+                因為 usdc 餘額都在合約身上，所以合約可以直接轉錢，用等值 5 ETH 的 usdc 來還錢。
+        */ 
         IERC20(callbackdata.debtToken).transfer(callbackdata.borrowPool, callbackdata.debtAmount);
-        // 把收益轉給 EOA
     }
 
     // Method 1 is
     //  - borrow WETH from lower price pool
     //  - swap WETH for USDC in higher price pool
     //  - repay USDC to lower pool
-    // Method 2 is
-    //  - borrow USDC from higher price pool
-    //  - swap USDC for WETH in lower pool
-    //  - repay WETH to higher pool
-    // for testing convenient, we implement the method 1 here
     function arbitrage(address priceLowerPool, address priceHigherPool, uint256 borrowETH) external {
-        // 1. finish callbackData
-        /*
-            先取得對應的資訊：需要知道 tokens 順序，才能得到正確的 address 和對應的 reserve。 
-            （從 test 已經知道 token0 is WETH & token1 is USDC）
+        /*  
+            1. finish callbackData
+                先取得對應的資訊：需要知道 tokens 順序，才能得到正確的 address 和對應的 reserve。 
+                [從 test 已經知道 token0 is WETH & token1 is USDC。]
         */ 
         address weth = IUniswapV2Pair(priceLowerPool).token0();
         address usdc = IUniswapV2Pair(priceLowerPool).token1();
@@ -76,7 +74,7 @@ contract Arbitrage is IUniswapV2Callee, Ownable {
 
         // 算出需要多少 usdc 才能取得 5 ETH
         uint256 amountUsdcInLowerPool = _getAmountIn(borrowETH,reserve1L,reserve0L);
-        // // 能用換到的 usdc 換回多少 WETH
+        // 能用 5 ETH 換出多少 usdc（這樣一來一往的放入與收回 usdc 即是 profit）
         uint256 amountUsdcOutFromHigherPool = _getAmountOut(borrowETH,reserve0H,reserve1H); 
 
         CallbackData memory callbackData = CallbackData({
@@ -89,24 +87,19 @@ contract Arbitrage is IUniswapV2Callee, Ownable {
             debtAmountOut: amountUsdcOutFromHigherPool
         });
         
-        // 2. flash swap (borrow WETH from lower price pool)
         /*
-            因為 swap 是直接先把錢轉給 to [在這邊是我們的 contract > address(this)]，
-            所以這邊呼叫 swap 後，再到 callback 操作 ERC20 相關的授權
+            2. flash swap (borrow WETH from lower price pool)
+                因為 swap 是直接先把錢轉給 to [在這邊是我們的 contract > address(this)]，
+                所以這邊呼叫 swap 後，再到 callback 操作 ERC20 相關的授權
         */
         IUniswapV2Pair(priceLowerPool).swap(borrowETH, 0, address(this), abi.encode(callbackData));
     }
 
-    //
-    // INTERNAL PURE
-    //
-
-    // copy from UniswapV2Library
     /*
         目的：放入換出多少 token，至少需要「放入」多少 token (給固定換出值來算出要放入的值)
             reserve 的 in 跟 out 是對應 amount In 與 Out，
             所以假設想要固定「換出」 5 個 WETH，WETH 的 reserve 是 reserveOut，
-            另一個 token 就會是得到的 return 和 reserveIn。
+            另一個 token 就會是得到的 return 和 reserveIn。 (_getAmountOut 反之)
     */
     function _getAmountIn(
         uint256 amountOut, 

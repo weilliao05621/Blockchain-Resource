@@ -16,3 +16,30 @@
 [submodule "section3/SimpleSwap/lib/openzeppelin-contracts"]
 	path = section3/SimpleSwap/lib/openzeppelin-contracts
 	url = https://github.com/openzeppelin/openzeppelin-contracts
+[submodule "section3/FlashSwapPractice/lib/forge-std"]
+	path = section3/FlashSwapPractice/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "section3/FlashSwapPractice/lib/v2-core"]
+	path = section3/FlashSwapPractice/lib/v2-core
+	url = https://github.com/uniswap/v2-core
+[submodule "section3/FlashSwapPractice/lib/v2-periphery"]
+	path = section3/FlashSwapPractice/lib/v2-periphery
+	url = https://github.com/uniswap/v2-periphery
+[submodule "section3/FlashSwapPractice/lib/openzeppelin-contracts"]
+	path = section3/FlashSwapPractice/lib/openzeppelin-contracts
+	url = https://github.com/openzeppelin/openzeppelin-contracts
+[submodule "section3/SandwichPractice/lib/forge-std"]
+	path = section3/SandwichPractice/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "lib/v2-core"]
+	path = lib/v2-core
+	url = https://github.com/uniswap/v2-core
+[submodule "lib/v2-periphery"]
+	path = lib/v2-periphery
+	url = https://github.com/uniswap/v2-periphery
+[submodule "section3/SandwichPractice/lib/v2-periphery"]
+	path = section3/SandwichPractice/lib/v2-periphery
+	url = https://github.com/uniswap/v2-periphery
+[submodule "section3/SandwichPractice/lib/v2-core"]
+	path = section3/SandwichPractice/lib/v2-core
+	url = https://github.com/uniswap/v2-core

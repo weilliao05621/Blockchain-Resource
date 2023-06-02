@@ -49,3 +49,9 @@
 [submodule "section3/CompoundPractice/lib/compound-protocol"]
 	path = section3/CompoundPractice/lib/compound-protocol
 	url = https://github.com/compound-finance/compound-protocol
+[submodule "section3/LendingPractice/lib/forge-std"]
+	path = section3/LendingPractice/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "section3/LendingPractice/lib/compound-protocol"]
+	path = section3/LendingPractice/lib/compound-protocol
+	url = https://github.com/compound-finance/compound-protocol

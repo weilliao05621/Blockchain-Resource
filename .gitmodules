@@ -55,3 +55,6 @@
 [submodule "section3/LendingPractice/lib/compound-protocol"]
 	path = section3/LendingPractice/lib/compound-protocol
 	url = https://github.com/compound-finance/compound-protocol
+[submodule "section3/LendingPractice/lib/openzeppelin-contracts"]
+	path = section3/LendingPractice/lib/openzeppelin-contracts
+	url = https://github.com/openzeppelin/openzeppelin-contracts

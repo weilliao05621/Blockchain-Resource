@@ -9,13 +9,20 @@ import "compound-protocol/contracts/Unitroller.sol";
 import "compound-protocol/contracts/Comptroller.sol";
 import "compound-protocol/contracts/SimplePriceOracle.sol";
 
-import {AWS} from "../contracts/AWS.sol";
+import {AWS} from "../contracts/test/AWS.sol";
+import {TokenA, TokenB} from "../contracts/test/Token.sol";
 
 contract Compound is Script {
-    AWS aws;
     AWS comp;
-    CErc20Delegate cAwsDelegate;
-    CErc20Delegator cAWS;
+
+    TokenA tokenA;
+    CErc20Delegate cTokenADelegate;
+    CErc20Delegator cTokenA;
+
+    TokenB tokenB;
+    CErc20Delegate cTokenBDelegate;
+    CErc20Delegator cTokenB;
+    
     WhitePaperInterestRateModel interestRateModel;
 
     Unitroller unitroller;
@@ -63,15 +70,14 @@ contract Compound is Script {
         */
         comptroller._become(unitroller);
 
-
         // 調用 comptroller logic 來設置 oracle 和 清算因子
         unitrollerProxy._setPriceOracle(priceOracle);
-        unitrollerProxy._setCloseFactor(5e16); // 0.05: 清算部位
+        unitrollerProxy._setCloseFactor(5e16); // 0.05: (不太懂這個因子是在限制哪個部分)
         unitrollerProxy._setLiquidationIncentive(108e16); // 1.08: 清算獎勵
 
         // 創造新的 cErc20 的池子
-        aws = new AWS();
-        cAwsDelegate = new CErc20Delegate();
+        tokenA = new TokenA();
+        cTokenADelegate = new CErc20Delegate();
         /*
         3. "CErc20Delegator::_setImplementation: Caller must be admin"
            兩邊設計 admin 的方式不一樣，所以在模擬環境會有 vm default account & 自己定義的 account
@@ -80,8 +86,8 @@ contract Compound is Script {
            > 更神奇的是，startBroadcast 如果「單獨放在 run」跟「直接放在 setUp」，會影響出來的值
            > 同時，如果在 foundry 的 Script.sol 下使用 msg.sender，也必須加上 --private-key <key> 才會讓直接使用 msg.sender 跟合約裡吃到的 msg.sender 一樣 
         */
-        cAWS = new CErc20Delegator(
-            address(aws), // underlyign
+        cTokenA = new CErc20Delegator(
+            address(tokenA), // underlyign
             unitrollerProxy,
             interestRateModel,
             /*
@@ -91,25 +97,50 @@ contract Compound is Script {
                 這樣放入 1 wei 數量的 ERC-20，也是拿到 1 wei 的 cToken
             */
             1e18, // 初始利率
-            "Compound AppWorks School Token",
-            "cAWS",
-            18, 
+            "Compound Token A",
+            "cTokenA",
+            18,
             payable(msg.sender), // admin: 記得加上 --private-key
-            address(cAwsDelegate),
+            address(cTokenADelegate),
             ""
         );
 
-        cAWS._setImplementation(address(cAwsDelegate), false, "");
-        cAWS._setReserveFactor(25e16); // 0.25
+        cTokenA._setImplementation(address(cTokenADelegate), false, "");
+        cTokenA._setReserveFactor(75e15); // 0.075
+
+        tokenB = new TokenB();
+        cTokenBDelegate = new CErc20Delegate();
+        cTokenB = new CErc20Delegator(
+            address(tokenB),
+            unitrollerProxy,
+            interestRateModel,
+            1e18,
+            "Compound Token B",
+            "cTokenB",
+            18,
+            payable(msg.sender),
+            address(cTokenBDelegate),
+            ""
+        );
+        cTokenB._setImplementation(address(cTokenBDelegate), false, "");
+        cTokenB._setReserveFactor(75e15); // 0.075
 
         // 確認新增 cErc20
-        unitrollerProxy._supportMarket(CToken(address(cAWS)));
+        unitrollerProxy._supportMarket(CToken(address(cTokenA)));
+        unitrollerProxy._supportMarket(CToken(address(cTokenB)));
 
         // 設置 cErc20 的報價與抵押後可使用的借貸比例
-        priceOracle.setUnderlyingPrice(CToken(address(cAWS)), 1e18);
+        priceOracle.setUnderlyingPrice(CToken(address(cTokenA)), 1e18); // tokenA > 1
+        priceOracle.setUnderlyingPrice(CToken(address(cTokenB)), 100e18); // tokenB > 100
+
+        // 設定抵押額度
         unitrollerProxy._setCollateralFactor(
-            CToken(address(cAWS)),
-            6e17 // 0.6
+            CToken(address(cTokenA)),
+            85e16 // 0.85
+        );
+        unitrollerProxy._setCollateralFactor(
+            CToken(address(cTokenB)),
+            5e17 // 0.5
         );
 
         vm.stopBroadcast();
@@ -125,7 +156,7 @@ contract Compound is Script {
             加上 --private-key
                 unitroller amdin  0x5b73C5498c1E3b4dbA84de0F1833c4a029d90519
                 msg.sender  0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
-        */ 
+        */
         // uint privateKey = vm.envUint("PRIVATE_KEY");
         // vm.startBroadcast(privateKey);
         // vm.stopBroadcast();

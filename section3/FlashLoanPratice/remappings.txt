@@ -1,0 +1,9 @@
+aave-v3-core/=lib/aave-v3-core/
+compound-protocol/=lib/compound-protocol/
+ds-test/=lib/forge-std/lib/ds-test/src/
+erc4626-tests/=lib/openzeppelin-contracts/lib/erc4626-tests/
+forge-std/=lib/forge-std/src/
+openzeppelin-contracts/=lib/openzeppelin-contracts/
+openzeppelin/=lib/openzeppelin-contracts/contracts/
+v2-core/=lib/v2-core/contracts/
+v2-periphery/=lib/v2-periphery/contracts/

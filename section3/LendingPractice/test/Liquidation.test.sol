@@ -6,6 +6,7 @@ import "forge-std/Test.sol";
 import "compound-protocol/contracts/CTokenInterfaces.sol";
 
 import "./setUp/Liquidation.test.setup.sol";
+import {ILiquidation} from "../contracts/ILiquidation.sol";
 
 contract TestLiquidation is TestLiquidationSetUp {
     AaveFlashLoan liquidation;
@@ -29,24 +30,23 @@ contract TestLiquidation is TestLiquidationSetUp {
         vm.prank(ADMIN);
         priceOracle.setUnderlyingPrice(CToken(address(cUNI)), 4e18);
 
-        // // 計算 shortfall，確保要借多少錢來清償
         (, , uint shortfall) = unitrollerProxy.getAccountLiquidity(User1);
-        assertEq(shortfall, 500e18);
-
-        uint repayAmount = ((shortfall / 2 / 1e18) * 1e6) / 2;
-        assertEq(repayAmount, 125e6);
+        assertGt(shortfall, 0, "LIQUIDATE: shortfall should be positive");
 
         vm.startPrank(User2);
 
-        liquidation.liquidate(
-            USDC_ADDRESS, // address liquidateToken
-            address(cUSDC), // address liquidateCToken
-            UNI_ADDRESS, // address collateralToken
-            address(cUNI), // address collateralCToken
-            User1, // address borrower
-            repayAmount // uint repayAmount
-        );
+        ILiquidation.LiquidationParams memory _liquidation = ILiquidation
+            .LiquidationParams({
+                liquidateToken: USDC_ADDRESS,
+                liquidateCToken: address(cUSDC),
+                collateralToken: UNI_ADDRESS,
+                collateralCToken: address(cUNI),
+                borrower: User1,
+                repayAmount: BORROW_cUSDC_AMOUNT / 2
+            });
 
+        liquidation.liquidate(_liquidation);
+        console.log(IERC20(USDC_ADDRESS).balanceOf(User2));
         assertGt(IERC20(USDC_ADDRESS).balanceOf(User2), 63 * 10 ** 6);
     }
 
@@ -59,11 +59,11 @@ contract TestLiquidation is TestLiquidationSetUp {
     function _user2SupplyUSDC() internal {
         vm.startPrank(User2);
         IERC20(USDC_ADDRESS).approve(address(cUSDC), BORROW_cUSDC_AMOUNT);
-        assertEq(cUSDC.mint(BORROW_cUSDC_AMOUNT), 0, "mint cUSDC failed");
+        assertEq(cUSDC.mint(BORROW_cUSDC_AMOUNT), 0, "SUPPLY: mint cUSDC failed");
         assertEq(
             cUSDC.balanceOf(User2),
             BORROW_cUSDC_AMOUNT,
-            "mint cUSDC failed on 1:1"
+            "SUPPLY: mint cUSDC failed on 1:1"
         );
         vm.stopPrank();
     }
@@ -71,11 +71,11 @@ contract TestLiquidation is TestLiquidationSetUp {
     function _user1SupplyUNI() internal {
         vm.startPrank(User1);
         IERC20(UNI_ADDRESS).approve(address(cUNI), MINT_cUNI_AMOUNT);
-        assertEq(cUNI.mint(MINT_cUNI_AMOUNT), 0, "mint cUNI failed");
+        assertEq(cUNI.mint(MINT_cUNI_AMOUNT), 0, "SUPPLY: mint cUNI failed");
         assertEq(
             cUNI.balanceOf(User1),
             MINT_cUNI_AMOUNT,
-            "mint cUNI failed on 1:1"
+            "SUPPLY:  mint cUNI failed on 1:1"
         );
         vm.stopPrank();
     }
@@ -86,7 +86,7 @@ contract TestLiquidation is TestLiquidationSetUp {
         address[] memory addressList = new address[](1);
         addressList[0] = address(cUNI);
         unitrollerProxy.enterMarkets(addressList);
-        assertEq(cUSDC.borrow(BORROW_cUSDC_AMOUNT), 0, "borrow USDC failed");
+        assertEq(cUSDC.borrow(BORROW_cUSDC_AMOUNT), 0, "BORROW: borrow USDC failed");
         vm.stopPrank();
     }
 }

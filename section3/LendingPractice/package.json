@@ -1,0 +1,9 @@
+{
+  "name": "LendingPractice",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@uniswap/v3-core": "^1.0.1"
+  }
+}
